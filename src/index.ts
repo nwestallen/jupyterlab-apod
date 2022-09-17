@@ -7,6 +7,7 @@ import { ICommandPalette, MainAreaWidget } from '@jupyterlab/apputils';
 
 import { Widget } from '@lumino/widgets';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 interface APODResponse {
   copyright: string;
   date: string;
@@ -27,10 +28,13 @@ const plugin: JupyterFrontEndPlugin<void> = {
     console.log('JupyterLab extension jupyterlab_apod is activated!');
 
     const content = new Widget();
+    content.addClass('my-adpodWidget');
 
     const img = document.createElement('img');
+    const summary = document.createElement('p');
 
     content.node.appendChild(img);
+    content.node.appendChild(summary);
 
     const randomDate = () => {
       const start = new Date(2010, 1, 1);
@@ -44,14 +48,25 @@ const plugin: JupyterFrontEndPlugin<void> = {
     const response = await fetch(
       `https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY&date=${randomDate()}`
     );
-
-    const data = (await response.json()) as APODResponse;
-
-    if (data.media_type === 'image') {
-      img.src = data.url;
-      img.title = data.title;
+    if (!response.ok) {
+      const data = await response.json();
+      if (data.error) {
+        summary.innerText = data.error.message;
+      } else {
+        summary.innerText = response.statusText;
+      }
     } else {
-      console.log('Random APOD was not a picture.');
+      const data = (await response.json()) as APODResponse;
+      if (data.media_type === 'image') {
+        img.src = data.url;
+        img.title = data.title;
+        summary.innerText = data.title;
+        if (data.copyright) {
+          summary.innerText += ` (Copyright ${data.copyright})`;
+        }
+      } else {
+        console.log('Random APOD was not a picture.');
+      }
     }
 
     //Add an application command
