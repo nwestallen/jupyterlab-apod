@@ -58,7 +58,7 @@ class APODWidget extends Widget {
       this.img.src = data.url;
       this.img.title = data.title;
       if (data.copyright) {
-        this.summary.innerText += ` (Copyright ${data.copyright})`;
+        this.summary.innerText = ` (Copyright ${data.copyright})`;
       }
     } else {
       this.summary.innerText = 'Random APOD fetched was not an image.';
